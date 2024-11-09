@@ -168,6 +168,17 @@ The valid values for {size} are:
     1G, 2G, 4G, 8G, 16G, 32G, 64G, 128G
 
 
+--------------------------------------------------------------------------------
+Benchmark Pi BBP:
+
+    {program} bench-bbp {size}
+
+    y-cruncher bench-bbp 10b
+    y-cruncher bench-bbp 100b
+
+The valid values for {size} are: 100m, 1b, 10b, 100b, 1t, 10t, 100t, 1q
+The "1q" option is only available for binaries with FMA3 or higher.
+
 
 --------------------------------------------------------------------------------
 Component Stress Tester:
@@ -177,7 +188,7 @@ Component Stress Tester:
                      [algorithm]
 
     y-cruncher stress
-    y-cruncher stress -M:3.5G -D:300 -TL:3600 FFT VST
+    y-cruncher stress -M:3.5G -D:300 -TL:3600 FFT VT3
 
 Runs a stress test using the specified parameters. Unspecified parameters are
 left at their defaults. By default, all algorithms are enabled. Specifying any
@@ -185,9 +196,25 @@ algorithm disables the rest. Multiple algorithms can be specified.
 
 -D and -TL are measured in seconds.
 
-The valid values for [algorithm] are: BKT, BBP, SFT, FFT, N32, N64, HNT, VST, and C17
-The "C17" algorithm is not available on all processors.
+The valid values for [algorithm] are: BKT, BBP, SFT, SFTv4, SNT, SVT, FFT, FFTv4, NTT63, N63, VSTv3, and VT3.
 
+The options N32, N64, HNT, VST and C17 are no longer supported.
+(N64 aliases to NTT63 and VST aliases to VSTv3)
+
+BKT   - Basecase + Karatsuba + Toom-Cook
+BBP   - Bailey-Borwein-Plouffe Digit Extraction for Pi
+SFT   - Small In-Cache FFT (v2 or v3)
+SFTv4 - Small In-Cache FFTv4
+SNT   - Small In-Cache NTT63/N63
+SVT   - Small In-Cache VSTv3/VT3
+FFT   - Fast Fourier Transform (v2 or v3)
+FFTv4 - Fast Fourier Transform (version 4)
+NTT63 - Classic 64-bit NTT (version 2)
+N63   - (alias of NTT63)
+N64   - Formerly Classic 64-bit NTT (v1). Now aliases to N63.
+VSTv3 - Vector-Scalable Transform (version 3)
+VT3   - (alias of VSTv3)
+VST   - Formerly Vector-Scalable Transform (version 2). Now aliases to VSTv3.
 
 
 --------------------------------------------------------------------------------
@@ -203,6 +230,19 @@ I/O Benchmark:
 Runs the I/O benchmark using the specified parameters. Unspecified parameters are
 left at their defaults. When "-swap" is not specified, it will use a single path
 at the current working directory.
+
+
+
+--------------------------------------------------------------------------------
+BBP Digit Extractor for Pi:
+
+    {program} bbp {-hex:{hexadecimal offset}}
+                  [-digits:{digits to compute}]
+                  [-TD:{tasks}]
+                  [-algorithm:{algorithm}]
+
+    y-cruncher bbp -hex:10b
+    y-cruncher bbp -hex:10b -digits:100 -TD:8 -algorithm:bellard
 
 
 
@@ -226,6 +266,7 @@ Custom Compute:
                      [-swap:{mode} [configuration]]
 
     y-cruncher custom catalan -dec:1000000
+    y-cruncher custom custom:"Zeta(2) - Direct.cfg" -dec:5000000
     y-cruncher custom log:2 -algorithm:1 -dec:100b -hex:0 -o "c:/" -compress:1b -verify:1 -mode:swap -TD:64 -M:120g -minIO:512k -swap:raid0 g:/ h:/ i:/ j:/
 
 Performs a custom computation using the specified parameters.
@@ -239,10 +280,10 @@ listed above since that is the direction of the auto-correction dependencies.
 
 
     Parameter: {constant:[param]}
-    Examples:  pi, log:2, sqrt:3, custom:"filename"
+    Examples:  pi, log:3, sqrt:3, custom:"filename"
 
-    Valid Values: sqrt, phi, goldenratio, e, pi, log, apery, zeta(3),
-                  lemniscate, catalan, gamma, brent, custom
+    Valid Values: sqrt, phi, goldenratio, e, pi, log, lemniscate, apery,
+                  zeta(3), catalan, gamma, brent, custom
 
 --------------------
 
@@ -418,12 +459,12 @@ Min I/O Bytes (Bytes per Seek):
 Swap Mode Configuration:
 
     -swap:default
+    -swap:ram
     -swap:raid0 [path0] [path1] [path2] [etc...]
-    -swap:raid3 [path0] [path1] [path2] [etc...]
 
     -swap:default
-    -swap:raid0 c:/ d:/ e:/ f:/
-    -swap:raid3 c:/ d:/ e:/ f:/ "path with space"
+    -swap:ram
+    -swap:raid0 c:/ d:/ e:/ f:/ "path with space"
 
     If this option is used, it must be the last option. All arguments after it
     will be parsed as paths.

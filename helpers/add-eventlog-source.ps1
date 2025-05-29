@@ -1,4 +1,12 @@
 <#
+.AUTHOR
+    sp00n
+.LINK
+    https://github.com/sp00n/corecycler
+.LICENSE
+    Creative Commons "CC BY-NC-SA"
+    https://creativecommons.org/licenses/by-nc-sa/4.0/
+    https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
 .DESCRIPTION
     This file is used to add a new Windows Event Log "Source", which is required to be able to use the Windows Event Log
     The name of this new Source is "CoreCycler"
@@ -6,8 +14,6 @@
     the main scrip width admin rights
 .PARAMETER shouldBeAdmin
     [Mixed] If set (to anything), assume that we are already admin
-.OUTPUTS
-    [Void]
 #>
 param(
     $shouldBeAdmin
@@ -91,12 +97,18 @@ function Add-XmlFileForCustomView {
 
     Write-Host
 
-    # File path doesn't exist
+    # The Event Viewer path doesn't exist, this can happen if the Event Viewer was never executed
+    # Try to create it ourselve
     if (!(Test-Path $path -PathType Container)) {
-        Write-Host 'The path to put the config file for the Custom View into doesn''t exist!' -ForegroundColor Red
-        Write-Host ('(' + $path + ')') -ForegroundColor Red
-        Write-Host 'Not trying to create the file' -ForegroundColor Red
-        return
+        try {
+            $null = New-Item -ItemType Directory -Path $path -ErrorAction Stop
+        }
+        catch {
+            Write-Host 'The path to put the config file for the Custom View into doesn''t exist, and we were unable to create it.' -ForegroundColor Red
+            Write-Host ('(' + $path + ')') -ForegroundColor Red
+            Write-Host 'Not trying to create the file for the Custom View' -ForegroundColor Red
+            return
+        }
     }
 
     # Skip if the file already exists
